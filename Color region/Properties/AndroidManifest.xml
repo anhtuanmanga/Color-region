@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Color_region.Color_region" android:versionCode="1" android:versionName="1.0" android:installLocation="auto">
+	<uses-sdk android:targetSdkVersion="19" android:minSdkVersion="10" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<application android:label="Color_region" android:icon="@drawable/Icon"></application>
+</manifest>
