@@ -25,6 +25,7 @@ namespace Color_region
         public static File _file;
         public static File _dir;
         public static Bitmap bitmap;
+        public static Bitmap bitmapPainted;
     }
     [Activity(Label = "Color_region", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity, View.IOnTouchListener, ILoaderCallbackInterface
@@ -70,8 +71,15 @@ namespace Color_region
                 {
                     y = bitmap.Height - 1;
                 }
-                bitmap = BitmapHelpers.PaintWall(App.bitmap, x, y, _panelNoAlpha.Color);
-                _imageView.SetImageBitmap(bitmap);
+                if (App.bitmapPainted == null)
+                {
+                    App.bitmapPainted = BitmapHelpers.PaintWall(App.bitmap, x, y, _panelNoAlpha.Color);
+                }
+                else
+                {
+                    App.bitmapPainted = BitmapHelpers.PaintWall(App.bitmapPainted, x, y, _panelNoAlpha.Color);
+                }
+                _imageView.SetImageBitmap(App.bitmapPainted);
             }
             return true;
         }
@@ -93,6 +101,8 @@ namespace Color_region
             if (IsThereAnAppToTakePictures())
             {
                 MenuInflater.Inflate(Resource.Layout.menu_items, menu);
+                View view = menu.FindItem(Resource.Id.panel_color).ActionView;
+                _panelNoAlpha = view.FindViewById<ColorPickerPanelView>(Resource.Id.PanelColorNoAlpha);
                 return base.OnCreateOptionsMenu(menu);
             }
             else
@@ -111,6 +121,13 @@ namespace Color_region
                 case Resource.Id.pick_color:
                     BtNoAlphaOnClick();
                     return true;
+                case Resource.Id.panel_color:
+                    BtNoAlphaOnClick();
+                    return true;
+                case Resource.Id.clear_color:
+                    App.bitmapPainted = null;
+                    _imageView.SetImageBitmap(App.bitmap);
+                    return true;
             }
             return base.OnOptionsItemSelected(item);
         }
@@ -119,7 +136,6 @@ namespace Color_region
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.Main);
-            _panelNoAlpha = FindViewById<ColorPickerPanelView>(Resource.Id.PanelColorNoAlpha);
             if (IsThereAnAppToTakePictures())
             {
                 _imageView = FindViewById<ImageView>(Resource.Id.imageView1);
