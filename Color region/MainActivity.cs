@@ -70,7 +70,7 @@ namespace Color_region
                 {
                     y = bitmap.Height - 1;
                 }
-                bitmap = BitmapHelpers.PaintWall(App.bitmap,x,y,_panelNoAlpha.Color);
+                bitmap = BitmapHelpers.PaintWall(App.bitmap, x, y, _panelNoAlpha.Color);
                 _imageView.SetImageBitmap(bitmap);
             }
             return true;
@@ -82,26 +82,48 @@ namespace Color_region
             base.OnActivityResult(requestCode, resultCode, data);
             if (resultCode == Result.Ok)
             {
+
                 App.bitmap = (Bitmap)data.Extras.Get("data");
                 _imageView.SetImageBitmap(App.bitmap);
             }
+        }
+
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
+            if (IsThereAnAppToTakePictures())
+            {
+                MenuInflater.Inflate(Resource.Layout.menu_items, menu);
+                return base.OnCreateOptionsMenu(menu);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override bool OnOptionsItemSelected(IMenuItem item)
+        {
+            switch (item.ItemId)
+            {
+                case Resource.Id.open_camera:
+                    TakeAPicture();
+                    return true;
+                case Resource.Id.pick_color:
+                    BtNoAlphaOnClick();
+                    return true;
+            }
+            return base.OnOptionsItemSelected(item);
         }
 
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.Main);
-
+            _panelNoAlpha = FindViewById<ColorPickerPanelView>(Resource.Id.PanelColorNoAlpha);
             if (IsThereAnAppToTakePictures())
             {
-                Button button = FindViewById<Button>(Resource.Id.MyButton);
-                Button colorPickerButton = FindViewById<Button>(Resource.Id.ColorPickerButton);
-                _panelNoAlpha = FindViewById<ColorPickerPanelView>(Resource.Id.PanelColorNoAlpha);
-                _panelNoAlpha.Color = Color.Black;
                 _imageView = FindViewById<ImageView>(Resource.Id.imageView1);
                 _imageView.BuildDrawingCache();
-                button.Click += TakeAPicture;
-                colorPickerButton.Click += BtNoAlphaOnClick;
                 _imageView.SetOnTouchListener(this);
             }
         }
@@ -125,7 +147,7 @@ namespace Color_region
             return availableActivities != null && availableActivities.Count > 0;
         }
 
-        private void BtNoAlphaOnClick(object sender, EventArgs eventArgs)
+        private void BtNoAlphaOnClick()
         {
             using (var colorPickerDialog = new ColorPickerDialog(this, _panelNoAlpha.Color))
             {
@@ -135,7 +157,7 @@ namespace Color_region
             }
         }
 
-        private void TakeAPicture(object sender, EventArgs eventArgs)
+        private void TakeAPicture()
         {
             Intent intent = new Intent(MediaStore.ActionImageCapture);
 

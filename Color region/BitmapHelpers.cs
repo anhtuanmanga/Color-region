@@ -53,21 +53,15 @@ namespace Color_region
             Utils.BitmapToMat(bitmap, mSrc);
             Imgproc.CvtColor(mSrc, mSrc, Imgproc.ColorRgba2rgb);
             Imgproc.CvtColor(mSrc, mCanny, Imgproc.ColorRgba2gray);
+            Imgproc.Blur(mCanny, mCanny, new Size(2, 2));
             Imgproc.Canny(mCanny, mCanny, 15, 30, 3, false);
             Imgproc.Laplacian(mCanny, mCanny, CvType.Cv8uc3);
             Mat mMask = Mat.Zeros(mCanny.Rows() + 2, mCanny.Cols() + 2, CvType.Cv8uc1);
             Imgproc.FloodFill(mCanny, mMask, new OpenCV.Core.Point(x, y), new Scalar(0, 0, 0), new OpenCV.Core.Rect(0, 0, mCanny.Cols(), mCanny.Rows()), new Scalar(20, 20, 20), new Scalar(20, 20, 20), 4 | Imgproc.FloodfillMaskOnly | (255 << 8));
             Mat mMaskColor = mMask.Submat(new OpenCV.Core.Rect(1, 1, mSrc.Cols(), mSrc.Rows()));
             mMaskColor.ConvertTo(mMaskColor, CvType.Cv8uc3);
-            JavaList<MatOfPoint> listContours = new JavaList<MatOfPoint>();
-            Imgproc.FindContours(mMaskColor, listContours, new Mat(), Imgproc.RetrCcomp, Imgproc.ChainApproxSimple);
-            for (int i = 0; i < listContours.Size(); i++)
-            {
-                Imgproc.DrawContours(mMaskColor, listContours, i, new Scalar(255, 255, 255), -1);
-            }
             Core.Bitwise_not(mMaskColor, mMaskColor);
-            //Mat kernel = Imgproc.GetStructuringElement(Imgproc.MorphEllipse, new Size(11, 11));
-            //Imgproc.MorphologyEx(mMaskColor, mMaskColor, Imgproc.MorphOpen, kernel);
+            Imgproc.MedianBlur(mMaskColor, mMaskColor, 3);
             Mat mResult = new Mat();
             mSrc.CopyTo(mResult, mMaskColor);
             Imgproc.FloodFill(mResult, mMask, new OpenCV.Core.Point(x, y), new Scalar(color.R, color.G, color.B));

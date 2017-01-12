@@ -66,14 +66,8 @@ namespace Color_region
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f050007
-			public const int ColorPickerButton = 2131034119;
-			
 			// aapt resource value: 0x7f050006
-			public const int MyButton = 2131034118;
-			
-			// aapt resource value: 0x7f050008
-			public const int PanelColorNoAlpha = 2131034120;
+			public const int PanelColorNoAlpha = 2131034118;
 			
 			// aapt resource value: 0x7f050000
 			public const int any = 2131034112;
@@ -87,14 +81,20 @@ namespace Color_region
 			// aapt resource value: 0x7f050002
 			public const int front = 2131034114;
 			
-			// aapt resource value: 0x7f050009
-			public const int imageView1 = 2131034121;
+			// aapt resource value: 0x7f050007
+			public const int imageView1 = 2131034119;
 			
 			// aapt resource value: 0x7f050005
 			public const int new_color_panel = 2131034117;
 			
 			// aapt resource value: 0x7f050004
 			public const int old_color_panel = 2131034116;
+			
+			// aapt resource value: 0x7f050008
+			public const int open_camera = 2131034120;
+			
+			// aapt resource value: 0x7f050009
+			public const int pick_color = 2131034121;
 			
 			static Id()
 			{
@@ -114,6 +114,9 @@ namespace Color_region
 			
 			// aapt resource value: 0x7f030001
 			public const int Main = 2130903041;
+			
+			// aapt resource value: 0x7f030002
+			public const int menu_items = 2130903042;
 			
 			static Layout()
 			{
