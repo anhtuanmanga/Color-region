@@ -27,7 +27,7 @@ namespace Color_region
         public static Bitmap bitmap;
         public static Bitmap bitmapPainted;
     }
-    [Activity(Label = "Color region", MainLauncher = true, Icon = "@drawable/icon", Theme = "@android:style/Theme.Black")]
+    [Activity(Label = "Color region", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity, View.IOnTouchListener, ILoaderCallbackInterface
     {
         private ColorPickerPanelView _panelNoAlpha;
@@ -91,8 +91,8 @@ namespace Color_region
             base.OnActivityResult(requestCode, resultCode, data);
             if (resultCode == Result.Ok)
             {
-
                 App.bitmap = (Bitmap)data.Extras.Get("data");
+                App.bitmapPainted = null;
                 _imageView.SetImageBitmap(App.bitmap);
             }
         }
