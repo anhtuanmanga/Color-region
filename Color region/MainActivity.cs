@@ -27,10 +27,11 @@ namespace Color_region
         public static Bitmap bitmap;
         public static Bitmap bitmapPainted;
     }
-    [Activity(Label = "Color_region", MainLauncher = true, Icon = "@drawable/icon")]
+    [Activity(Label = "Color region", MainLauncher = true, Icon = "@drawable/icon", Theme = "@android:style/Theme.Black")]
     public class MainActivity : Activity, View.IOnTouchListener, ILoaderCallbackInterface
     {
         private ColorPickerPanelView _panelNoAlpha;
+
         public bool OnTouch(View v, MotionEvent e)
         {
             if (App.bitmap != null)
