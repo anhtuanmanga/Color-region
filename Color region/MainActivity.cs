@@ -101,7 +101,7 @@ namespace Color_region
                 Uri contentUri = Uri.FromFile(App._file);
                 mediaScanIntent.SetData(contentUri);
                 SendBroadcast(mediaScanIntent);
-                App.bitmap = App._file.Path.LoadBitmapFromFile();
+                App.bitmap = App._file.Path.LoadBitmapFromFile(768,1028);
                 App.bitmapPainted = null;
                 _imageView.SetImageBitmap(App.bitmap);
                 GC.Collect();

@@ -35,13 +35,32 @@ namespace Color_region
             canvas.DrawBitmap(bitmap, middleX - bitmap.Width / 2, middleY - bitmap.Height / 2, new Paint(PaintFlags.FilterBitmap));
             return scaledBitmap;
         }
-        public static Bitmap LoadBitmapFromFile(this string fileName)
+        public static Bitmap LoadBitmapFromFile(this string fileName, int reqWidth, int reqHeight)
         {
             // First we get the the dimensions of the file on disk
             BitmapFactory.Options options = new BitmapFactory.Options();
             BitmapFactory.DecodeFile(fileName, options);
-            Bitmap bitmap = BitmapFactory.DecodeFile(fileName, options);
+            int height = options.OutHeight;
+            int width = options.OutWidth;
+            int inSampleSize = 1;
 
+            if (height > reqHeight || width > reqWidth)
+            {
+
+                int halfHeight = height / 2;
+                int halfWidth = width / 2;
+
+                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+                // height and width larger than the requested height and width.
+                while ((halfHeight / inSampleSize) >= reqHeight
+                        && (halfWidth / inSampleSize) >= reqWidth)
+                {
+                    inSampleSize *= 2;
+                }
+            }
+
+            options.InSampleSize = inSampleSize;
+            Bitmap bitmap = BitmapFactory.DecodeFile(fileName, options);
             return bitmap;
         }
 
@@ -55,6 +74,7 @@ namespace Color_region
             Imgproc.CvtColor(mSrc, mCanny, Imgproc.ColorRgba2gray);
             Imgproc.Blur(mCanny, mCanny, new Size(3, 3));
             Imgproc.Canny(mCanny, mCanny, 60, 90, 3, true);
+            Imgproc.AdaptiveThreshold(mCanny, mCanny, 255, Imgproc.AdaptiveThreshGaussianC, Imgproc.ThreshBinary, 3, 2);
             Mat mMask = Mat.Zeros(mCanny.Rows() + 2, mCanny.Cols() + 2, CvType.Cv8uc1);
             Imgproc.FloodFill(mCanny, mMask, new OpenCV.Core.Point(x, y), new Scalar(0, 0, 0), new OpenCV.Core.Rect(0, 0, mCanny.Cols(), mCanny.Rows()), new Scalar(20, 20, 20), new Scalar(20, 20, 20), 4 | Imgproc.FloodfillMaskOnly | (255 << 8));
             Mat mMaskColor = mMask.Submat(new OpenCV.Core.Rect(1, 1, mSrc.Cols(), mSrc.Rows()));
