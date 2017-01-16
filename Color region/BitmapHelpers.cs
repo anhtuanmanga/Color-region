@@ -55,15 +55,15 @@ namespace Color_region
             Imgproc.CvtColor(mSrc, mCanny, Imgproc.ColorRgba2gray);
             Imgproc.Blur(mCanny, mCanny, new Size(3, 3));
             Imgproc.Canny(mCanny, mCanny, 60, 90, 3, true);
-            //Mat mMask = Mat.Zeros(mCanny.Rows() + 2, mCanny.Cols() + 2, CvType.Cv8uc1);
-            //Imgproc.FloodFill(mCanny, mMask, new OpenCV.Core.Point(x, y), new Scalar(0, 0, 0), new OpenCV.Core.Rect(0, 0, mCanny.Cols(), mCanny.Rows()), new Scalar(20, 20, 20), new Scalar(20, 20, 20), 4 | Imgproc.FloodfillMaskOnly | (255 << 8));
-            //Mat mMaskColor = mMask.Submat(new OpenCV.Core.Rect(1, 1, mSrc.Cols(), mSrc.Rows()));
-            //mMaskColor.ConvertTo(mMaskColor, CvType.Cv8uc3);
-            //Core.Bitwise_not(mMaskColor, mMaskColor);
-            //Mat mResult = new Mat();
-            //mSrc.CopyTo(mResult, mMaskColor);
-            //Imgproc.FloodFill(mResult, mMask, new OpenCV.Core.Point(x, y), new Scalar(color.R, color.G, color.B));
-            Utils.MatToBitmap(mCanny, bitmap);
+            Mat mMask = Mat.Zeros(mCanny.Rows() + 2, mCanny.Cols() + 2, CvType.Cv8uc1);
+            Imgproc.FloodFill(mCanny, mMask, new OpenCV.Core.Point(x, y), new Scalar(0, 0, 0), new OpenCV.Core.Rect(0, 0, mCanny.Cols(), mCanny.Rows()), new Scalar(20, 20, 20), new Scalar(20, 20, 20), 4 | Imgproc.FloodfillMaskOnly | (255 << 8));
+            Mat mMaskColor = mMask.Submat(new OpenCV.Core.Rect(1, 1, mSrc.Cols(), mSrc.Rows()));
+            mMaskColor.ConvertTo(mMaskColor, CvType.Cv8uc3);
+            Core.Bitwise_not(mMaskColor, mMaskColor);
+            Mat mResult = new Mat();
+            mSrc.CopyTo(mResult, mMaskColor);
+            Imgproc.FloodFill(mResult, mMask, new OpenCV.Core.Point(x, y), new Scalar(color.R, color.G, color.B));
+            Utils.MatToBitmap(mResult, bitmap);
             return bitmap;
         }
 
