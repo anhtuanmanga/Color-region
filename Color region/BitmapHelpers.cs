@@ -73,8 +73,9 @@ namespace Color_region
             Imgproc.CvtColor(mSrc, mSrc, Imgproc.ColorRgba2rgb);
             Imgproc.CvtColor(mSrc, mCanny, Imgproc.ColorRgba2gray);
             Imgproc.Blur(mCanny, mCanny, new Size(3, 3));
-            Imgproc.Canny(mCanny, mCanny, 60, 90, 3, true);
-            Imgproc.AdaptiveThreshold(mCanny, mCanny, 255, Imgproc.AdaptiveThreshGaussianC, Imgproc.ThreshBinary, 3, 2);
+            double highThres = Imgproc.Threshold(mSrc, new Mat(), 0, 255, Imgproc.ThreshBinary | Imgproc.ThreshOtsu);
+            double lowThres = 0.5 * highThres;
+            Imgproc.Canny(mCanny, mCanny, lowThres, highThres, 3, false);
             Mat mMask = Mat.Zeros(mCanny.Rows() + 2, mCanny.Cols() + 2, CvType.Cv8uc1);
             Imgproc.FloodFill(mCanny, mMask, new OpenCV.Core.Point(x, y), new Scalar(0, 0, 0), new OpenCV.Core.Rect(0, 0, mCanny.Cols(), mCanny.Rows()), new Scalar(20, 20, 20), new Scalar(20, 20, 20), 4 | Imgproc.FloodfillMaskOnly | (255 << 8));
             Mat mMaskColor = mMask.Submat(new OpenCV.Core.Rect(1, 1, mSrc.Cols(), mSrc.Rows()));
@@ -84,6 +85,68 @@ namespace Color_region
             mSrc.CopyTo(mResult, mMaskColor);
             Imgproc.FloodFill(mResult, mMask, new OpenCV.Core.Point(x, y), new Scalar(color.R, color.G, color.B));
             Utils.MatToBitmap(mResult, bitmap);
+            return bitmap;
+        }
+
+        public static Bitmap PaintWall2(Bitmap srcBitmap, int xCor, int yCor, Color color)
+        {
+            Mat mSrc = new Mat(), mLaplacian = new Mat(), mSharp = new Mat(), mBinary = new Mat(), mDist = new Mat(), mResult = new Mat();
+            Utils.BitmapToMat(srcBitmap, mSrc);
+            Imgproc.CvtColor(mSrc, mSrc, Imgproc.ColorRgba2rgb);
+            Mat kernel = new Mat(3, 3, CvType.Cv32f);
+            kernel.Put(0, 0, new float[] { 1, 1, 1, 1, -8, 1, 1, 1, 1 });
+            mSharp = mSrc.Clone();
+            Imgproc.Filter2D(mSharp, mLaplacian, CvType.Cv32f, kernel);
+            mSrc.ConvertTo(mSharp, CvType.Cv32f);
+            Core.Subtract(mSharp, mLaplacian, mResult);
+            mResult.ConvertTo(mResult, CvType.Cv8uc3);
+            mSrc = mResult.Clone();
+            Imgproc.CvtColor(mSrc, mBinary, Imgproc.ColorRgba2gray);
+            Imgproc.Threshold(mBinary, mBinary, 40, 255, Imgproc.ThreshBinary | Imgproc.ThreshOtsu);
+            Imgproc.DistanceTransform(mBinary, mDist, Imgproc.CvDistL2, 3);
+            Core.Normalize(mDist, mDist, 0, 1, Core.NormMinmax);
+            Imgproc.Threshold(mDist, mDist, 0.4, 1, Imgproc.ThreshBinary);
+            Mat kernel1 = Mat.Ones(3, 3, CvType.Cv8uc1);
+            Imgproc.Dilate(mDist, mDist, kernel1);
+            Mat mDist8u = new Mat();
+            mDist.ConvertTo(mDist8u, CvType.Cv8u);
+            JavaList<MatOfPoint> lstContours = new JavaList<MatOfPoint>();
+            Imgproc.FindContours(mDist8u, lstContours, new Mat(), Imgproc.RetrExternal, Imgproc.ChainApproxSimple);
+            Mat mMarker = Mat.Zeros(mDist.Size(), CvType.Cv32sc1);
+            for (int i = 0; i < lstContours.Size(); i++)
+            {
+                Imgproc.DrawContours(mMarker, lstContours, i, Scalar.All(i + 1), -1);
+            }
+            Imgproc.Circle(mMarker, new OpenCV.Core.Point(5, 5), 3, Scalar.All(255), -1);
+            Imgproc.Watershed(mSrc, mMarker);
+            Mat mMark = new Mat(mMarker.Size(), CvType.Cv8uc1);
+            mMarker.ConvertTo(mMark, CvType.Cv8uc1);
+            Core.Bitwise_not(mMark, mMark);
+            Mat mWaterShed = new Mat(mMark.Size(), CvType.Cv8uc3);
+            Random rnd = new Random();
+            int rows = mMark.Rows();
+            int cols = mMark.Cols();
+            int numberContours = lstContours.Size();
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    byte[] data = new byte[mMark.Channels() * mMark.Total()];
+                    int index = mMark.Get(i, j, data);
+                    if (index == -1)
+                        mWaterShed.Put(i, j, 255, 255, 255);
+                    else if (index <= 0 || index > numberContours)
+                        mWaterShed.Put(i, j, 0, 0, 0);
+                    else
+                        mWaterShed.Put(i, j, rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
+                }
+            }
+            if (mSrc.Dims() > 0)
+            {
+                Core.AddWeighted(mWaterShed, 0.5, mSrc, 0.5, 0.0, mWaterShed);
+            }
+            Bitmap bitmap = Bitmap.CreateBitmap((int)mSrc.Size().Width, (int)mSrc.Size().Height, Bitmap.Config.Argb8888);
+            Utils.MatToBitmap(mWaterShed, bitmap);
             return bitmap;
         }
 

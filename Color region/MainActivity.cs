@@ -50,7 +50,7 @@ namespace Color_region
                     //Bitmap bitmap = ((BitmapDrawable)imgDrawable).Bitmap;
                     if (!OpenCVLoader.InitDebug())
                     {
-                        OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion242, this, this);
+                        OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion310, this, this);
                     }
                     else
                     {
@@ -76,12 +76,12 @@ namespace Color_region
                     }
                     if (App.bitmapPainted == null)
                     {
-                        App.bitmapPainted = BitmapHelpers.PaintWall(App.bitmap, x, y, _panelNoAlpha.Color);
+                        App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmap, x, y, _panelNoAlpha.Color);
                         //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmap);
                     }
                     else
                     {
-                        App.bitmapPainted = BitmapHelpers.PaintWall(App.bitmapPainted, x, y, _panelNoAlpha.Color);
+                        App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmapPainted, x, y, _panelNoAlpha.Color);
                         //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmapPainted);
                     }
                     _imageView.SetImageBitmap(App.bitmapPainted);
@@ -101,7 +101,7 @@ namespace Color_region
                 Uri contentUri = Uri.FromFile(App._file);
                 mediaScanIntent.SetData(contentUri);
                 SendBroadcast(mediaScanIntent);
-                App.bitmap = App._file.Path.LoadBitmapFromFile(768,1028);
+                App.bitmap = App._file.Path.LoadBitmapFromFile(500,500);
                 App.bitmapPainted = null;
                 _imageView.SetImageBitmap(App.bitmap);
                 GC.Collect();
@@ -209,7 +209,7 @@ namespace Color_region
 
             if (!OpenCVLoader.InitDebug())
             {
-                OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion242, this, this);
+                OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion310, this, this);
             }
             else
             {
