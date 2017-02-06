@@ -35,6 +35,34 @@ namespace Color_region
             canvas.DrawBitmap(bitmap, middleX - bitmap.Width / 2, middleY - bitmap.Height / 2, new Paint(PaintFlags.FilterBitmap));
             return scaledBitmap;
         }
+
+        public static OpenCV.Core.Point GetPoint(View v, float eventX,float eventY)
+        {
+            float[] eventXY = new float[] { eventX, eventY };
+            Matrix invertMatrix = new Matrix();
+            bool check = ((ImageView)v).ImageMatrix.Invert(invertMatrix);
+            invertMatrix.MapPoints(eventXY);
+            int x = (int)eventXY[0];
+            int y = (int)eventXY[1];
+            if (x < 0)
+            {
+                x = 0;
+            }
+            else if (x > App.img.Cols() - 1)
+            {
+                x = App.img.Cols() - 1;
+            }
+
+            if (y < 0)
+            {
+                y = 0;
+            }
+            else if (y > App.img.Rows() - 1)
+            {
+                y = App.img.Rows() - 1;
+            }
+            return new OpenCV.Core.Point(x, y);
+        }
         public static Mat LoadMatFromFile(this string fileName, int reqWidth, int reqHeight)
         {
             // First we get the the dimensions of the file on disk

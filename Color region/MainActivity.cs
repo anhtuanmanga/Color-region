@@ -125,36 +125,19 @@ namespace Color_region
             {
                 if (!App.img.Empty())
                 {
-                    float eventX = e.GetX();
-                    float eventY = e.GetY();
-                    float[] eventXY = new float[] { eventX, eventY };
-                    Matrix invertMatrix = new Matrix();
-                    bool check = ((ImageView)v).ImageMatrix.Invert(invertMatrix);
-                    invertMatrix.MapPoints(eventXY);
-                    int x = (int)eventXY[0];
-                    int y = (int)eventXY[1];
-                    if (x < 0)
-                    {
-                        x = 0;
-                    }
-                    else if (x > App.img.Cols() - 1)
-                    {
-                        x = App.img.Cols() - 1;
-                    }
 
-                    if (y < 0)
+                    for (int i = 0; i < e.HistorySize - 1; i++)
                     {
-                        y = 0;
+                        OpenCV.Core.Point prePt = BitmapHelpers.GetPoint(v, e.GetHistoricalX(i), e.GetHistoricalY(i));
+                        OpenCV.Core.Point pt = BitmapHelpers.GetPoint(v, e.GetHistoricalX(i + 1), e.GetHistoricalY(i + 1));
+                        Imgproc.Line(App.markerMash, prePt, pt, Scalar.All(255), 5, 8, 0);
+                        Imgproc.Line(App.img, prePt, pt, Scalar.All(255), 5, 8, 0);
                     }
-                    else if (y > App.img.Rows() - 1)
-                    {
-                        y = App.img.Rows() - 1;
-                    }
-                    OpenCV.Core.Point pt = new OpenCV.Core.Point(x, y);
-                    if (App.prevPt.X < 0)
-                        App.prevPt = new OpenCV.Core.Point(x, y);
-                    Imgproc.Line(App.markerMash, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
-                    Imgproc.Line(App.img, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
+                    //OpenCV.Core.Point pt = new OpenCV.Core.Point(x, y);
+                    //if (App.prevPt.X < 0)
+                    //    App.prevPt = new OpenCV.Core.Point(x, y);
+                    //Imgproc.Line(App.markerMash, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
+                    //Imgproc.Line(App.img, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
                     Bitmap bitmap = Bitmap.CreateBitmap((int)App.img.Cols(), (int)App.img.Rows(), Bitmap.Config.Argb8888);
                     Utils.MatToBitmap(App.img, bitmap);
                     _imageView.SetImageBitmap(bitmap);
