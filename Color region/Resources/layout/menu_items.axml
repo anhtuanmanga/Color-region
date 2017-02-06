@@ -10,6 +10,9 @@
         android:id="@+id/clear_color"
         android:title="Clear Color" />
     <item
+        android:id="@+id/watershed"
+        android:title="Watershed" />
+    <item
         android:id="@+id/panel_color"
         android:actionLayout="@layout/color_panel_view"
         android:showAsAction="ifRoom" />

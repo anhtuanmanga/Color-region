@@ -24,8 +24,10 @@ namespace Color_region
     {
         public static File _file;
         public static File _dir;
-        public static Bitmap bitmap;
-        public static Bitmap bitmapPainted;
+        public static OpenCV.Core.Point prevPt = new OpenCV.Core.Point(-1, -1);
+        public static Mat img0 = new Mat();
+        public static Mat img = new Mat();
+        public static Mat markerMash = new Mat();
     }
     [Activity(Label = "Color region", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity, View.IOnTouchListener, ILoaderCallbackInterface
@@ -34,9 +36,62 @@ namespace Color_region
 
         public bool OnTouch(View v, MotionEvent e)
         {
+            if (!OpenCVLoader.InitDebug())
+            {
+                OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion310, this, this);
+            }
+            else
+            {
+                OnManagerConnected(LoaderCallbackInterface.Success);
+            }
+            if (e.Action == MotionEventActions.Up)
+                App.prevPt = new OpenCV.Core.Point(-1, -1);
             if (e.Action == MotionEventActions.Down)
             {
-                if (App.bitmap != null)
+                //if (App.img != null)
+                //{
+                //float eventX = e.GetX();
+                //float eventY = e.GetY();
+                //float[] eventXY = new float[] { eventX, eventY };
+                //Matrix invertMatrix = new Matrix();
+                //bool check = ((ImageView)v).ImageMatrix.Invert(invertMatrix);
+                //invertMatrix.MapPoints(eventXY);
+                //int x = (int)eventXY[0];
+                //int y = (int)eventXY[1];
+                ////Drawable imgDrawable = ((ImageView)v).Drawable;
+                ////Bitmap bitmap = ((BitmapDrawable)imgDrawable).Bitmap;
+                //Bitmap bitmap = App.bitmap.Copy(Bitmap.Config.Argb8888, true);
+                //if (x < 0)
+                //{
+                //    x = 0;
+                //}
+                //else if (x > bitmap.Width - 1)
+                //{
+                //    x = bitmap.Width - 1;
+                //}
+
+                //if (y < 0)
+                //{
+                //    y = 0;
+                //}
+                //else if (y > bitmap.Height - 1)
+                //{
+                //    y = bitmap.Height - 1;
+                //}
+                //if (App.bitmapPainted == null)
+                //{
+                //    App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmap, x, y, _panelNoAlpha.Color);
+                //    //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmap);
+                //}
+                //else
+                //{
+                //    App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmapPainted, x, y, _panelNoAlpha.Color);
+                //    //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmapPainted);
+                //}
+                //_imageView.SetImageBitmap(App.bitmapPainted);
+                //GC.Collect();
+                //}
+                if (!App.img.Empty())
                 {
                     float eventX = e.GetX();
                     float eventY = e.GetY();
@@ -46,45 +101,63 @@ namespace Color_region
                     invertMatrix.MapPoints(eventXY);
                     int x = (int)eventXY[0];
                     int y = (int)eventXY[1];
-                    //Drawable imgDrawable = ((ImageView)v).Drawable;
-                    //Bitmap bitmap = ((BitmapDrawable)imgDrawable).Bitmap;
-                    if (!OpenCVLoader.InitDebug())
-                    {
-                        OpenCVLoader.InitAsync(OpenCVLoader.OpencvVersion310, this, this);
-                    }
-                    else
-                    {
-                        OnManagerConnected(LoaderCallbackInterface.Success);
-                    }
-                    Bitmap bitmap = App.bitmap.Copy(Bitmap.Config.Argb8888, true);
                     if (x < 0)
                     {
                         x = 0;
                     }
-                    else if (x > bitmap.Width - 1)
+                    else if (x > App.img.Cols() - 1)
                     {
-                        x = bitmap.Width - 1;
+                        x = App.img.Cols() - 1;
                     }
 
                     if (y < 0)
                     {
                         y = 0;
                     }
-                    else if (y > bitmap.Height - 1)
+                    else if (y > App.img.Rows() - 1)
                     {
-                        y = bitmap.Height - 1;
+                        y = App.img.Rows() - 1;
                     }
-                    if (App.bitmapPainted == null)
+                    App.prevPt = new OpenCV.Core.Point(x, y);
+                }
+            }
+            if (e.Action == MotionEventActions.Move)
+            {
+                if (!App.img.Empty())
+                {
+                    float eventX = e.GetX();
+                    float eventY = e.GetY();
+                    float[] eventXY = new float[] { eventX, eventY };
+                    Matrix invertMatrix = new Matrix();
+                    bool check = ((ImageView)v).ImageMatrix.Invert(invertMatrix);
+                    invertMatrix.MapPoints(eventXY);
+                    int x = (int)eventXY[0];
+                    int y = (int)eventXY[1];
+                    if (x < 0)
                     {
-                        App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmap, x, y, _panelNoAlpha.Color);
-                        //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmap);
+                        x = 0;
                     }
-                    else
+                    else if (x > App.img.Cols() - 1)
                     {
-                        App.bitmapPainted = BitmapHelpers.PaintWall2(App.bitmapPainted, x, y, _panelNoAlpha.Color);
-                        //App.bitmapPainted = BitmapHelpers.WaterShed(App.bitmapPainted);
+                        x = App.img.Cols() - 1;
                     }
-                    _imageView.SetImageBitmap(App.bitmapPainted);
+
+                    if (y < 0)
+                    {
+                        y = 0;
+                    }
+                    else if (y > App.img.Rows() - 1)
+                    {
+                        y = App.img.Rows() - 1;
+                    }
+                    OpenCV.Core.Point pt = new OpenCV.Core.Point(x, y);
+                    if (App.prevPt.X < 0)
+                        App.prevPt = new OpenCV.Core.Point(x, y);
+                    Imgproc.Line(App.markerMash, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
+                    Imgproc.Line(App.img, App.prevPt, pt, Scalar.All(255), 5, 8, 0);
+                    Bitmap bitmap = Bitmap.CreateBitmap((int)App.img.Cols(), (int)App.img.Rows(), Bitmap.Config.Argb8888);
+                    Utils.MatToBitmap(App.img, bitmap);
+                    _imageView.SetImageBitmap(bitmap);
                     GC.Collect();
                 }
             }
@@ -101,9 +174,14 @@ namespace Color_region
                 Uri contentUri = Uri.FromFile(App._file);
                 mediaScanIntent.SetData(contentUri);
                 SendBroadcast(mediaScanIntent);
-                App.bitmap = App._file.Path.LoadBitmapFromFile(500,500);
-                App.bitmapPainted = null;
-                _imageView.SetImageBitmap(App.bitmap);
+                App.img0 = App._file.Path.LoadMatFromFile(768, 1028);
+                Imgproc.CvtColor(App.img0, App.img0, Imgproc.ColorRgba2rgb);
+                App.img0.CopyTo(App.img);
+                Imgproc.CvtColor(App.img, App.markerMash, Imgproc.ColorRgba2gray);
+                App.markerMash.SetTo(Scalar.All(0));
+                Bitmap bitmap = Bitmap.CreateBitmap((int)App.img.Cols(), (int)App.img.Rows(), Bitmap.Config.Argb8888);
+                Utils.MatToBitmap(App.img, bitmap);
+                _imageView.SetImageBitmap(bitmap);
                 GC.Collect();
             }
         }
@@ -138,9 +216,24 @@ namespace Color_region
                     BtNoAlphaOnClick();
                     return true;
                 case Resource.Id.clear_color:
-                    App.bitmapPainted = null;
-                    _imageView.SetImageBitmap(App.bitmap);
-                    return true;
+                    {
+                        App.img0.CopyTo(App.img);
+                        App.markerMash.SetTo(Scalar.All(0));
+                        Bitmap bitmap = Bitmap.CreateBitmap((int)App.img.Cols(), (int)App.img.Rows(), Bitmap.Config.Argb8888);
+                        Utils.MatToBitmap(App.img, bitmap);
+                        _imageView.SetImageBitmap(bitmap);
+                        GC.Collect();
+                        return true;
+                    }
+                case Resource.Id.watershed:
+                    {
+                        Mat mat = BitmapHelpers.WaterShed2(App.markerMash, App.img0);
+                        Bitmap bitmap = Bitmap.CreateBitmap(mat.Cols(), mat.Rows(), Bitmap.Config.Argb8888);
+                        Utils.MatToBitmap(mat, bitmap);
+                        _imageView.SetImageBitmap(bitmap);
+                        GC.Collect();
+                        return true;
+                    }
             }
             return base.OnOptionsItemSelected(item);
         }

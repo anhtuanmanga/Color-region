@@ -96,11 +96,14 @@ namespace Color_region
 			// aapt resource value: 0x7f050008
 			public const int open_camera = 2131034120;
 			
-			// aapt resource value: 0x7f05000b
-			public const int panel_color = 2131034123;
+			// aapt resource value: 0x7f05000c
+			public const int panel_color = 2131034124;
 			
 			// aapt resource value: 0x7f050009
 			public const int pick_color = 2131034121;
+			
+			// aapt resource value: 0x7f05000b
+			public const int watershed = 2131034123;
 			
 			static Id()
 			{

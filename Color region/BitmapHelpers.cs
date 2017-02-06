@@ -35,7 +35,7 @@ namespace Color_region
             canvas.DrawBitmap(bitmap, middleX - bitmap.Width / 2, middleY - bitmap.Height / 2, new Paint(PaintFlags.FilterBitmap));
             return scaledBitmap;
         }
-        public static Bitmap LoadBitmapFromFile(this string fileName, int reqWidth, int reqHeight)
+        public static Mat LoadMatFromFile(this string fileName, int reqWidth, int reqHeight)
         {
             // First we get the the dimensions of the file on disk
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -61,7 +61,9 @@ namespace Color_region
 
             options.InSampleSize = inSampleSize;
             Bitmap bitmap = BitmapFactory.DecodeFile(fileName, options);
-            return bitmap;
+            Mat mat = new Mat();
+            Utils.BitmapToMat(bitmap, mat);
+            return mat;
         }
 
         public static Bitmap PaintWall(Bitmap srcBitmap, int x, int y, Color color)
@@ -117,37 +119,54 @@ namespace Color_region
             {
                 Imgproc.DrawContours(mMarker, lstContours, i, Scalar.All(i + 1), -1);
             }
-            Imgproc.Circle(mMarker, new OpenCV.Core.Point(5, 5), 3, Scalar.All(255), -1);
+            Imgproc.Circle(mMarker, new OpenCV.Core.Point(xCor, yCor), 3, Scalar.All(255), -1);
             Imgproc.Watershed(mSrc, mMarker);
             Mat mMark = new Mat(mMarker.Size(), CvType.Cv8uc1);
             mMarker.ConvertTo(mMark, CvType.Cv8uc1);
             Core.Bitwise_not(mMark, mMark);
-            Mat mWaterShed = new Mat(mMark.Size(), CvType.Cv8uc3);
+            Mat mWaterShed = new Mat(mMarker.Size(), CvType.Cv8uc3);
             Random rnd = new Random();
-            int rows = mMark.Rows();
-            int cols = mMark.Cols();
+            int rows = mMarker.Rows();
+            int cols = mMarker.Cols();
             int numberContours = lstContours.Size();
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    byte[] data = new byte[mMark.Channels() * mMark.Total()];
-                    int index = mMark.Get(i, j, data);
-                    if (index == -1)
-                        mWaterShed.Put(i, j, 255, 255, 255);
-                    else if (index <= 0 || index > numberContours)
-                        mWaterShed.Put(i, j, 0, 0, 0);
-                    else
-                        mWaterShed.Put(i, j, rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
-                }
-            }
             if (mSrc.Dims() > 0)
             {
                 Core.AddWeighted(mWaterShed, 0.5, mSrc, 0.5, 0.0, mWaterShed);
             }
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+
+                }
+            }
             Bitmap bitmap = Bitmap.CreateBitmap((int)mSrc.Size().Width, (int)mSrc.Size().Height, Bitmap.Config.Argb8888);
-            Utils.MatToBitmap(mWaterShed, bitmap);
+            Utils.MatToBitmap(mMark, bitmap);
             return bitmap;
+        }
+
+        public static Mat WaterShed2(Mat markerMask, Mat img0)
+        {
+            JavaList<MatOfPoint> lstContours = new JavaList<MatOfPoint>();
+            Imgproc.FindContours(markerMask, lstContours, new Mat(), Imgproc.RetrCcomp, Imgproc.ChainApproxSimple);
+            Mat markers = new Mat(markerMask.Size(), CvType.Cv32s);
+            markers.SetTo(Scalar.All(0));
+            for (int i = 0; i < lstContours.Size(); i++)
+            {
+                Imgproc.DrawContours(markers, lstContours, i, Scalar.All(i + 1), -1);
+            }
+            Imgproc.Watershed(img0, markers);
+            lstContours.Clear();
+            Imgproc.FindContours(markers, lstContours, new Mat(), Imgproc.RetrCcomp, Imgproc.ChainApproxSimple);
+            Random rnd = new Random();
+            markers.ConvertTo(markers, CvType.Cv32f);
+            Imgproc.CvtColor(markers, markers, Imgproc.ColorGray2rgba);
+            for (int i = 0; i < lstContours.Size(); i++)
+            {
+                Imgproc.DrawContours(markers, lstContours, i, new Scalar(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255)), -1);
+            }
+            markers.ConvertTo(markers, CvType.Cv8u);
+            return markers;
         }
 
         public static Bitmap WaterShed(Bitmap srcBitmap)
